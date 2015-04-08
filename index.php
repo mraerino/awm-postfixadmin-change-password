@@ -68,11 +68,18 @@ class CCustomChangePasswordPlugin extends AApiChangePasswordPlugin
 
 				$saved_password = $mailuser['password'];
 
+				// get salt
+				$parts = explode("\$", $saved_password);
+				$salt = "";
+				if($parts[1] == '1' && count($parts) == 4) {
+					$salt = $parts[2];
+				}
+
 				// load md5crypt
 				include_once __DIR__.'/md5crypt.php';
 
 				//* Check if mailuser password is correct
-				if(md5crypt(stripslashes($password)) == $saved_password) {
+				if(md5crypt(stripslashes($password), $salt) == $saved_password) {
 					$mailuser_id = $mailuser['username'];
 
 					$new_password = md5crypt($new_password);
