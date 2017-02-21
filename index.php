@@ -90,7 +90,7 @@ class CCustomChangePasswordPlugin extends AApiChangePasswordPlugin
 
 					if (!$result){
 						//add log into postfixadmin
-						mysqli_query($mysqlcon, "INSERT INTO log VALUES(CURRENT_TIMESTAMP, '{$mailuser_id} ({$_SERVER["REMOTE_ADDR"]})', '{$domain}', 'edit_password', 'FAILURE: {$mailuser_id}')");
+						mysqli_query($mysqlcon, "INSERT INTO log VALUES(CURRENT_TIMESTAMP, '{$mailuser_id} ({$_SERVER["REMOTE_ADDR"]})', '{$domain}', 'edit_password', 'FAILURE: {$mailuser_id}, webmail')");
 						//password update error
 						throw new CApiManagerException(Errs::UserManager_AccountNewPasswordUpdateError);
 					}
@@ -98,7 +98,7 @@ class CCustomChangePasswordPlugin extends AApiChangePasswordPlugin
 					//add log into postfixadmin
 					mysqli_query($mysqlcon, "INSERT INTO log VALUES(CURRENT_TIMESTAMP, '{$mailuser_id} ({$_SERVER["REMOTE_ADDR"]})', '{$domain}', 'edit_password', '{$mailuser_id}, webmail')");
 				} else {
-					mysqli_query($mysqlcon, "INSERT INTO log VALUES(CURRENT_TIMESTAMP, '{$mailuser_id} ({$_SERVER["REMOTE_ADDR"]})', '{$domain}', 'edit_password', 'MATCH FAILURE: {$mailuser_id}')");
+					mysqli_query($mysqlcon, "INSERT INTO log VALUES(CURRENT_TIMESTAMP, '{$mailuser_id} ({$_SERVER["REMOTE_ADDR"]})', '{$domain}', 'edit_password', 'MATCH FAILURE: {$mailuser_id}, webmail')");
 					//old and new passwords dont match
 					throw new CApiManagerException(Errs::UserManager_AccountOldPasswordNotCorrect);
 				}
