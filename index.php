@@ -77,6 +77,8 @@ class CCustomChangePasswordPlugin extends AApiChangePasswordPlugin
 
 				// load md5crypt
 				include_once __DIR__.'/md5crypt.php';
+				list(,$domain) = explode("@", $mailuser_id);
+
 
 				//* Check if mailuser password is correct
 				if(md5crypt(stripslashes($password), $salt) == $saved_password) {
@@ -87,14 +89,16 @@ class CCustomChangePasswordPlugin extends AApiChangePasswordPlugin
 					$result = mysqli_query($mysqlcon,$sql);
 
 					if (!$result){
+						//add log into postfixadmin
+						mysqli_query($mysqlcon, "INSERT INTO log VALUES(CURRENT_TIMESTAMP, '{$mailuser_id} ({$_SERVER["REMOTE_ADDR"]})', '{$domain}', 'edit_password', 'FAILURE: {$mailuser_id}')");
 						//password update error
 						throw new CApiManagerException(Errs::UserManager_AccountNewPasswordUpdateError);
 					}
 
 					//add log into postfixadmin
-					list(,$domain) = explode("@", $mailuser_id);
 					mysqli_query($mysqlcon, "INSERT INTO log VALUES(CURRENT_TIMESTAMP, '{$mailuser_id} ({$_SERVER["REMOTE_ADDR"]})', '{$domain}', 'edit_password', '{$mailuser_id}, webmail')");
 				} else {
+					mysqli_query($mysqlcon, "INSERT INTO log VALUES(CURRENT_TIMESTAMP, '{$mailuser_id} ({$_SERVER["REMOTE_ADDR"]})', '{$domain}', 'edit_password', 'MATCH FAILURE: {$mailuser_id}')");
 					//old and new passwords dont match
 					throw new CApiManagerException(Errs::UserManager_AccountOldPasswordNotCorrect);
 				}
