@@ -77,13 +77,12 @@ class CCustomChangePasswordPlugin extends AApiChangePasswordPlugin
 
 				// load md5crypt
 				include_once __DIR__.'/md5crypt.php';
-				list(,$domain) = explode("@", $mailuser_id);
+				list(,$domain) = explode("@", $mailuser['username']);
 
 
 				//* Check if mailuser password is correct
 				if(md5crypt(stripslashes($password), $salt) == $saved_password) {
 					$mailuser_id = $mailuser['username'];
-
 					$new_password = md5crypt($new_password);
 					$sql = "UPDATE mailbox SET password='$new_password',modified=CURRENT_TIMESTAMP WHERE username='$mailuser_id'";
 					$result = mysqli_query($mysqlcon,$sql);
