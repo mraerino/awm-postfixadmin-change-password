@@ -17,7 +17,7 @@ class CCustomChangePasswordPlugin extends AApiChangePasswordPlugin
 	 */
 	public function __construct(CApiPluginManager $oPluginManager)
 	{
-		parent::__construct('1.0', $oPluginManager);
+		parent::__construct('1.1', $oPluginManager);
 	}
 
 	/**
@@ -53,8 +53,8 @@ class CCustomChangePasswordPlugin extends AApiChangePasswordPlugin
 				"dbname" => CApi::GetConf('plugins.postfixadmin-change-password.config.dbname', 'postfixadmin'),
 			];
 
-			//connect to ispconfig database
-			$mysqlcon=mysqli_connect($aPostfixadmin['host'],$aPostfixadmin['dbuser'],$aPostfixadmin['dbpassword'],$aPostfixadmin['dbname']);
+			//connect to postfixadmin database
+			$mysqlcon = mysqli_connect($aPostfixadmin['host'],$aPostfixadmin['dbuser'],$aPostfixadmin['dbpassword'],$aPostfixadmin['dbname']);
 
 		 	if($mysqlcon){
 				//check old pass is correct
@@ -77,20 +77,27 @@ class CCustomChangePasswordPlugin extends AApiChangePasswordPlugin
 
 				// load md5crypt
 				include_once __DIR__.'/md5crypt.php';
+				list(,$domain) = explode("@", $mailuser['username']);
+
 
 				//* Check if mailuser password is correct
 				if(md5crypt(stripslashes($password), $salt) == $saved_password) {
 					$mailuser_id = $mailuser['username'];
-
 					$new_password = md5crypt($new_password);
-					$sql = "UPDATE mailbox SET password='$new_password' WHERE username='$mailuser_id'";
+					$sql = "UPDATE mailbox SET password='$new_password',modified=CURRENT_TIMESTAMP WHERE username='$mailuser_id'";
 					$result = mysqli_query($mysqlcon,$sql);
 
 					if (!$result){
+						//add log into postfixadmin
+						mysqli_query($mysqlcon, "INSERT INTO log VALUES(CURRENT_TIMESTAMP, '{$mailuser_id} ({$_SERVER["REMOTE_ADDR"]})', '{$domain}', 'edit_password', 'FAILURE: {$mailuser_id}, webmail')");
 						//password update error
 						throw new CApiManagerException(Errs::UserManager_AccountNewPasswordUpdateError);
 					}
+
+					//add log into postfixadmin
+					mysqli_query($mysqlcon, "INSERT INTO log VALUES(CURRENT_TIMESTAMP, '{$mailuser_id} ({$_SERVER["REMOTE_ADDR"]})', '{$domain}', 'edit_password', '{$mailuser_id}, webmail')");
 				} else {
+					mysqli_query($mysqlcon, "INSERT INTO log VALUES(CURRENT_TIMESTAMP, '{$mailuser_id} ({$_SERVER["REMOTE_ADDR"]})', '{$domain}', 'edit_password', 'MATCH FAILURE: {$mailuser_id}, webmail')");
 					//old and new passwords dont match
 					throw new CApiManagerException(Errs::UserManager_AccountOldPasswordNotCorrect);
 				}
